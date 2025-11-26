@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resizer, Cropper & Compressor</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        h2 {
+            margin: 0;
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+
+        /* 1. Upload Section */
+        .upload-box {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary);
+        }
+
+        input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-label {
+            pointer-events: none;
+            color: #64748b;
+        }
+
+        /* 2. Preview Section */
+        .preview-container {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            object-fit: contain;
+        }
+
+        .file-info {
+            font-size: 0.85rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* 3. Controls Section */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        input[type="number"], select {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        /* 4. Action Button */
+        .btn-action {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+
+        .btn-action:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-action:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #status-msg {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: -10px;
+            min-height: 20px;
+        }
+
+        .success { color: #16a34a; }
+        .error { color: #dc2626; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Photo Tool</h2>
+
+    <div class="upload-box">
+        <input type="file" id="fileInput" accept="image/*">
+        <div class="upload-label">
+            <strong>Click to upload</strong> or drag and drop<br>
+            <span style="font-size: 0.8em">(JPG, PNG, WebP)</span>
+        </div>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+        <img id="previewImg" class="preview-image" src="" alt="Preview">
+        <div class="file-info" id="originalInfo"></div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="targetWidth">Width (px)</label>
+            <input type="number" id="targetWidth" placeholder="e.g. 1920">
+        </div>
+        <div class="control-group">
+            <label for="targetHeight">Height (px)</label>
+            <input type="number" id="targetHeight" placeholder="e.g. 1080">
+        </div>
+        
+        <div class="control-group">
+            <label for="maxSizeKB">Max Size (KB)</label>
+            <input type="number" id="maxSizeKB" placeholder="e.g. 500">
+        </div>
+
+        <div class="control-group">
+            <label for="fitMode">Crop Mode</label>
+            <select id="fitMode">
+                <option value="cover">Center Crop (Trim edges)</option>
+                <option value="contain">Fit & Add Background (No Crop)</option>
+                <option value="fill">Stretch (Distort)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="status-msg"></div>
+
+    <button id="downloadBtn" class="btn-action" disabled>Crop, Compress & Download</button>
+</div>
+
+<script>
+    // DOM Elements
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImg = document.getElementById('previewImg');
+    const originalInfo = document.getElementById('originalInfo');
+    const targetWidthInput = document.getElementById('targetWidth');
+    const targetHeightInput = document.getElementById('targetHeight');
+    const maxSizeInput = document.getElementById('maxSizeKB');
+    const fitModeInput = document.getElementById('fitMode');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusMsg = document.getElementById('status-msg');
+
+    let originalImage = new Image();
+    let originalFileName = "image";
+
+    // 1. Handle File Upload
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        originalFileName = file.name.split('.')[0];
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            originalImage = new Image();
+            originalImage.onload = function() {
+                // Show Preview
+                previewImg.src = event.target.result;
+                previewContainer.style.display = 'flex';
+                
+                // Set Inputs to Original Dimensions initially
+                targetWidthInput.value = originalImage.width;
+                targetHeightInput.value = originalImage.height;
+                
+                // Show Info
+                const kb = (file.size / 1024).toFixed(2);
+                originalInfo.textContent = `Original: ${originalImage.width}x${originalImage.height}px | ${kb} KB`;
+                
+                downloadBtn.disabled = false;
+                statusMsg.textContent = "";
+            };
+            originalImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // 2. Main Logic: Resize, Crop, Compress
+    downloadBtn.addEventListener('click', async function() {
+        const targetW = parseInt(targetWidthInput.value);
+        const targetH = parseInt(targetHeightInput.value);
+        const maxKB = parseInt(maxSizeInput.value);
+        const fitMode = fitModeInput.value;
+
+        if (!targetW || !targetH) {
+            statusMsg.textContent = "Please specify width and height.";
+            statusMsg.className = "error";
+            return;
+        }
+
+        statusMsg.textContent = "Processing...";
+        statusMsg.className = "";
+
+        // Create Canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+
+        // Draw Background (White) - useful if using 'contain' mode
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, targetW, targetH);
+
+        // Calculate Crop/Scale Logic
+        let renderX = 0, renderY = 0, renderW = targetW, renderH = targetH;
+
+        if (fitMode === 'cover') {
+            // Center Crop strategy
+            const scale = Math.max(targetW / originalImage.width, targetH / originalImage.height);
+            renderW = originalImage.width * scale;
+            renderH = originalImage.height * scale;
+            renderX = (targetW - renderW) / 2;
+            renderY = (targetH - renderH) / 2;
+        } else if (fitMode === 'contain') {
+            // Fit within (Black bars/White bars)
+            const scale = Math.min(targetW / originalImage.width, targetH / originalImage.height);
+            renderW = originalImage.width * scale;
+            renderH = originalImage.height * scale;
+            renderX = (targetW - renderW) / 2;
+            renderY = (targetH - renderH) / 2;
+        }
+        // 'fill' just uses default 0,0,targetW,targetH (stretch)
+
+        // Draw image to canvas
+        ctx.drawImage(originalImage, renderX, renderY, renderW, renderH);
+
+        // Compression Logic
+        let quality = 0.95;
+        let blob = null;
+
+        // If user didn't specify Max KB, just download high quality
+        if (!maxSizeInput.value) {
+            blob = await getCanvasBlob(canvas, quality);
+        } else {
+            // Iterative compression to meet file size
+            const maxBytes = maxKB * 1024;
+            let attempts = 0;
+            
+            do {
+                blob = await getCanvasBlob(canvas, quality);
+                if (blob.size > maxBytes) {
+                    quality -= 0.05; // Reduce quality
+                }
+                attempts++;
+            } while (blob.size > maxBytes && quality > 0.1 && attempts < 20);
+
+            if (blob.size > maxBytes) {
+                statusMsg.textContent = `Warning: Could not compress to ${maxKB}KB. Lowest size: ${(blob.size/1024).toFixed(0)}KB`;
+                statusMsg.className = "error";
+            } else {
+                statusMsg.textContent = `Done! Final size: ${(blob.size/1024).toFixed(1)}KB`;
+                statusMsg.className = "success";
+            }
+        }
+
+        // Trigger Download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${originalFileName}_${targetW}x${targetH}_processed.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // Helper: Promisified Canvas to Blob
+    function getCanvasBlob(canvas, quality) {
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/jpeg', quality);
+        });
+    }
+
+</script>
+
+</body>
+</html>
