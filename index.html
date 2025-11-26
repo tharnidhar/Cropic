@@ -3,12 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>Image Crop, Resize & Compress Tool</title>
+=======
+    <title>Fixed Image Tool</title>
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
     <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+
         body {
+<<<<<<< HEAD
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f4f9;
             color: #333;
+=======
+            font-family: sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,12 +37,18 @@
         }
 
         .container {
+<<<<<<< HEAD
             background: white;
             padding: 2rem;
+=======
+            background: var(--card);
+            padding: 20px;
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 500px;
+<<<<<<< HEAD
             text-align: center;
         }
 
@@ -85,11 +110,70 @@
 
         /* The Grid for Dimensions */
         .dimensions-grid {
+=======
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h2 { text-align: center; margin: 0; }
+
+        /* UPLOAD BOX */
+        .upload-box {
+            border: 3px dashed var(--border);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            background: #f1f5f9;
+            transition: 0.2s;
+        }
+
+        .upload-box:hover { border-color: var(--primary); }
+
+        /* The invisible input covers the whole box */
+        input[type="file"] {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10; 
+        }
+
+        /* PREVIEW AREA */
+        .preview-container {
+            display: none; /* Hidden until file picked */
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 350px;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .file-info {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: bold;
+        }
+
+        /* CONTROLS */
+        .controls {
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
+<<<<<<< HEAD
         /* Button Styling */
         button {
             background-color: #007bff;
@@ -356,6 +440,36 @@
             min-height: 20px;
         }
 
+=======
+        .full-width { grid-column: span 2; }
+
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 4px;}
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box; /* Fixes padding issues */
+        }
+
+        /* BUTTONS */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        
+        #status-msg { text-align: center; min-height: 20px; font-size: 0.9rem; }
+        .error { color: #dc2626; }
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
         .success { color: #16a34a; }
         .error { color: #dc2626; }
 
@@ -368,13 +482,20 @@
 
     <div class="upload-box">
         <input type="file" id="fileInput" accept="image/*">
+<<<<<<< HEAD
         <div class="upload-label">
             <strong>Click to upload</strong> or drag and drop<br>
             <span style="font-size: 0.8em">(JPG, PNG, WebP)</span>
+=======
+        <div>
+            <strong>Tap to Select Image</strong><br>
+            <small>(JPG, PNG, WebP)</small>
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
         </div>
     </div>
 
     <div class="preview-container" id="previewContainer">
+<<<<<<< HEAD
         <img id="previewImg" class="preview-image" src="" alt="Preview">
         <div class="file-info" id="originalInfo"></div>
     </div>
@@ -400,13 +521,42 @@
                 <option value="cover">Center Crop (Trim edges)</option>
                 <option value="contain">Fit & Add Background (No Crop)</option>
                 <option value="fill">Stretch (Distort)</option>
+=======
+        <img id="previewImg" class="preview-image" src="" alt="Image Preview">
+        <div id="originalInfo" class="file-info">Loading info...</div>
+    </div>
+
+    <div class="controls">
+        <div>
+            <label>Width (px)</label>
+            <input type="number" id="targetWidth">
+        </div>
+        <div>
+            <label>Height (px)</label>
+            <input type="number" id="targetHeight">
+        </div>
+        <div>
+            <label>Max Size (KB)</label>
+            <input type="number" id="maxSizeKB">
+        </div>
+        <div>
+            <label>Crop Mode</label>
+            <select id="fitMode">
+                <option value="cover">Center Crop (Trim)</option>
+                <option value="fill">Stretch (Distort)</option>
+                <option value="contain">Fit (White Bars)</option>
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
             </select>
         </div>
     </div>
 
     <div id="status-msg"></div>
 
+<<<<<<< HEAD
     <button id="downloadBtn" class="btn-action" disabled>Crop, Compress & Download</button>
+=======
+    <button id="downloadBtn" class="btn" disabled>Crop & Download</button>
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
 </div>
 
 <script>
@@ -425,15 +575,23 @@
     let originalImage = new Image();
     let originalFileName = "image";
 
+<<<<<<< HEAD
     // 1. Handle File Upload
+=======
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
         originalFileName = file.name.split('.')[0];
+<<<<<<< HEAD
         
+=======
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
         const reader = new FileReader();
+
         reader.onload = function(event) {
+<<<<<<< HEAD
             originalImage = new Image();
             originalImage.onload = function() {
                 // Show Preview
@@ -451,11 +609,39 @@
                 downloadBtn.disabled = false;
                 statusMsg.textContent = "";
             };
+=======
+            // FIX: Show preview immediately, don't wait for image object
+            previewImg.src = event.target.result;
+            previewContainer.style.display = 'flex';
+            statusMsg.textContent = "";
+
+            // Background load for math
+            originalImage = new Image();
+            originalImage.onload = function() {
+                // Once loaded, we can get dimensions
+                const kb = (file.size / 1024).toFixed(2);
+                originalInfo.textContent = `${originalImage.width} x ${originalImage.height} px | ${kb} KB`;
+                
+                targetWidthInput.value = originalImage.width;
+                targetHeightInput.value = originalImage.height;
+                downloadBtn.disabled = false;
+            };
+            // If image is corrupt/unreadable, this triggers error
+            originalImage.onerror = function() {
+                statusMsg.textContent = "Error: Could not read image data.";
+                statusMsg.className = "error";
+            };
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
             originalImage.src = event.target.result;
         };
+
         reader.readAsDataURL(file);
+        
+        // Clear input so selecting same file works again
+        e.target.value = '';
     });
 
+<<<<<<< HEAD
     // 2. Main Logic: Resize, Crop, Compress
     downloadBtn.addEventListener('click', async function() {
         const targetW = parseInt(targetWidthInput.value);
@@ -506,9 +692,52 @@
         ctx.drawImage(originalImage, renderX, renderY, renderW, renderH);
 
         // Compression Logic
+=======
+    downloadBtn.addEventListener('click', async function() {
+        if(!originalImage.width) return;
+
+        statusMsg.textContent = "Processing...";
+        statusMsg.className = "";
+        
+        const targetW = parseInt(targetWidthInput.value) || originalImage.width;
+        const targetH = parseInt(targetHeightInput.value) || originalImage.height;
+        const maxKB = parseInt(maxSizeInput.value) || 0;
+        const fitMode = fitModeInput.value;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+
+        // White background
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, targetW, targetH);
+
+        // Calculation Logic
+        let renderX = 0, renderY = 0, renderW = targetW, renderH = targetH;
+        
+        if (fitMode === 'cover') {
+            const scale = Math.max(targetW / originalImage.width, targetH / originalImage.height);
+            renderW = originalImage.width * scale;
+            renderH = originalImage.height * scale;
+            renderX = (targetW - renderW) / 2;
+            renderY = (targetH - renderH) / 2;
+        } else if (fitMode === 'contain') {
+            const scale = Math.min(targetW / originalImage.width, targetH / originalImage.height);
+            renderW = originalImage.width * scale;
+            renderH = originalImage.height * scale;
+            renderX = (targetW - renderW) / 2;
+            renderY = (targetH - renderH) / 2;
+        }
+
+        ctx.drawImage(originalImage, renderX, renderY, renderW, renderH);
+
+        // Compression Loop
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
         let quality = 0.95;
         let blob = null;
 
+<<<<<<< HEAD
         // If user didn't specify Max KB, just download high quality
         if (!maxSizeInput.value) {
             blob = await getCanvasBlob(canvas, quality);
@@ -522,6 +751,14 @@
                 if (blob.size > maxBytes) {
                     quality -= 0.05; // Reduce quality
                 }
+=======
+        if (maxKB > 0) {
+            const maxBytes = maxKB * 1024;
+            let attempts = 0;
+            while (blob.size > maxBytes && quality > 0.1 && attempts < 15) {
+                quality -= 0.05;
+                blob = await getBlob(canvas, quality);
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
                 attempts++;
             } while (blob.size > maxBytes && quality > 0.1 && attempts < 20);
 
@@ -534,6 +771,7 @@
             }
         }
 
+<<<<<<< HEAD
         // Trigger Download
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -552,6 +790,22 @@
                 resolve(blob);
             }, 'image/jpeg', quality);
         });
+=======
+        // Force Download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${originalFileName}_edited.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        statusMsg.textContent = `Downloaded! Size: ${(blob.size/1024).toFixed(1)} KB`;
+        statusMsg.className = "success";
+    });
+
+    function getBlob(canvas, quality) {
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+>>>>>>> parent of 1560dee (Refactor HTML and JavaScript for photo tool)
     }
 
 </script>
