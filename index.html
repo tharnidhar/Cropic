@@ -3,112 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Resizer, Cropper & Compressor</title>
+    <title>Fixed Image Tool</title>
     <style>
         :root {
             --primary: #2563eb;
-            --primary-hover: #1d4ed8;
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #1e293b;
-            --border: #e2e8f0;
+            --border: #cbd5e1;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: sans-serif;
             background-color: var(--bg);
             color: var(--text);
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
         }
 
         .container {
             background: var(--card);
-            padding: 2rem;
+            padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 500px;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 20px;
         }
 
-        h2 {
-            margin: 0;
-            text-align: center;
-            font-size: 1.5rem;
-            color: var(--text);
-        }
+        h2 { text-align: center; margin: 0; }
 
-        /* 1. Upload Section */
+        /* UPLOAD BOX */
         .upload-box {
-            border: 2px dashed var(--border);
+            border: 3px dashed var(--border);
             border-radius: 8px;
-            padding: 2rem;
+            padding: 30px;
             text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s;
             position: relative;
+            background: #f1f5f9;
+            transition: 0.2s;
         }
 
-        .upload-box:hover {
-            border-color: var(--primary);
-        }
+        .upload-box:hover { border-color: var(--primary); }
 
+        /* The invisible input covers the whole box */
         input[type="file"] {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             opacity: 0;
             cursor: pointer;
+            z-index: 10; 
         }
 
-        .upload-label {
-            pointer-events: none;
-            color: #64748b;
-        }
-
-        /* 2. Preview Section */
+        /* PREVIEW AREA */
         .preview-container {
-            display: none; /* Hidden by default */
+            display: none; /* Hidden until file picked */
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 8px;
         }
 
         .preview-image {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            object-fit: contain;
+            max-height: 350px;
+            display: block;
+            border-radius: 4px;
         }
 
         .file-info {
             font-size: 0.85rem;
             color: #64748b;
-            background: #f1f5f9;
-            padding: 4px 8px;
-            border-radius: 4px;
+            font-weight: bold;
         }
 
-        /* 3. Controls Section */
+        /* CONTROLS */
         .controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            gap: 15px;
         }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
+        .full-width { grid-column: span 2; }
+
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 4px;}
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box; /* Fixes padding issues */
+        }
+
+        /* BUTTONS */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        
+        #status-msg { text-align: center; min-height: 20px; font-size: 0.9rem; }
+        .error { color: #dc2626; }
+        .success { color: #16a34a; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Photo Editor</h2>
+
+    <div class="upload-box">
+        <input type="file" id="fileInput" accept="image/*">
+        <div>
+            <strong>Tap to Select Image</strong><br>
+            <small>(JPG, PNG, WebP)</small>
+        </div>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+        <img id="previewImg" class="preview-image" src="" alt="Image Preview">
+        <div id="originalInfo" class="file-info">Loading info...</div>
+    </div>
+
+    <div class="controls">
+        <div>
+            <label>Width (px)</label>
+            <input type="number" id="targetWidth">
+        </div>
+        <div>
+            <label>Height (px)</label>
+            <input type="number" id="targetHeight">
+        </div>
+        <div>
+            <label>Max Size (KB)</label>
+            <input type="number" id="maxSizeKB">
+        </div>
+        <div>
+            <label>Crop Mode</label>
+            <select id="fitMode">
+                <option value="cover">Center Crop (Trim)</option>
+                <option value="fill">Stretch (Distort)</option>
+                <option value="contain">Fit (White Bars)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="status-msg"></div>
+
+    <button id="downloadBtn" class="btn" disabled>Crop & Download</button>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImg = document.getElementById('previewImg');
+    const originalInfo = document.getElementById('originalInfo');
+    const targetWidthInput = document.getElementById('targetWidth');
+    const targetHeightInput = document.getElementById('targetHeight');
+    const maxSizeInput = document.getElementById('maxSizeKB');
+    const fitModeInput = document.getElementById('fitMode');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusMsg = document.getElementById('status-msg');
+
+    let originalImage = new Image();
+    let originalFileName = "image";
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        originalFileName = file.name.split('.')[0];
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            // FIX: Show preview immediately, don't wait for image object
+            previewImg.src = event.target.result;
+            previewContainer.style.display = 'flex';
+            statusMsg.textContent = "";
+
+            // Background load for math
+            originalImage = new Image();
+            originalImage.onload = function() {
+                // Once loaded, we can get dimensions
+                const kb = (file.size / 1024).toFixed(2);
+                originalInfo.textContent = `${originalImage.width} x ${originalImage.height} px | ${kb} KB`;
+                
+                targetWidthInput.value = originalImage.width;
+                targetHeightInput.value = originalImage.height;
+                downloadBtn.disabled = false;
+            };
+            // If image is corrupt/unreadable, this triggers error
+            originalImage.onerror = function() {
+                statusMsg.textContent = "Error: Could not read image data.";
+                statusMsg.className = "error";
+            };
+            originalImage.src = event.target.result;
+        };
+
+        reader.readAsDataURL(file);
+        
+        // Clear input so selecting same file works again
+        e.target.value = '';
+    });
+
+    downloadBtn.addEventListener('click', async function() {
+        if(!originalImage.width) return;
+
+        statusMsg.textContent = "Processing...";
+        statusMsg.className = "";
+        
+        const targetW = parseInt(targetWidthInput.value) || originalImage.width;
+        const targetH = parseInt(targetHeightInput.value) || originalImage.height;
+        const maxKB = parseInt(maxSizeInput.value) || 0;
+        const fitMode = fitModeInput.value;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+
+        // White background
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, targetW, targetH);
+
+        // Calculation Logic
+        let renderX = 0, renderY = 0, renderW = targetW, renderH = targetH;
+        
+        if (fitMode === 'cover') {
+            const scale = Math.max(targetW / originalImage.width, targetH / originalImage.height);
+            renderW = originalImage.width * scale;
+            renderH = originalImage.height * scale;
+            renderX = (targetW - renderW) / 2;
+            renderY = (targetH - renderH) / 2;
+        } else if (fitMode === 'contain') {
+            const scale = Math.min(targetW / originalImage.width, targetH / originalImage.height);
+            renderW = originalImage.width * scale;
+            renderH = originalImage.height * scale;
+            renderX = (targetW - renderW) / 2;
+            renderY = (targetH - renderH) / 2;
+        }
+
+        ctx.drawImage(originalImage, renderX, renderY, renderW, renderH);
+
+        // Compression Loop
+        let quality = 0.95;
+        let blob = await getBlob(canvas, quality);
+
+        if (maxKB > 0) {
+            const maxBytes = maxKB * 1024;
+            let attempts = 0;
+            while (blob.size > maxBytes && quality > 0.1 && attempts < 15) {
+                quality -= 0.05;
+                blob = await getBlob(canvas, quality);
+                attempts++;
+            }
+        }
+
+        // Force Download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${originalFileName}_edited.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        statusMsg.textContent = `Downloaded! Size: ${(blob.size/1024).toFixed(1)} KB`;
+        statusMsg.className = "success";
+    });
+
+    function getBlob(canvas, quality) {
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+    }
+</script>
+
+</body>
+</html>
             gap: 0.5rem;
         }
 
